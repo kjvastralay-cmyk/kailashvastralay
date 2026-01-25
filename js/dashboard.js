@@ -23,7 +23,7 @@ async function loadDashboard() {
   document.getElementById("dashStock").innerText = totalStock;
 
   /* ================= TODAY SALES ================= */
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString("en-CA");
 
   const { data: salesData } = await sb
     .from("bills")
@@ -47,3 +47,4 @@ async function loadDashboard() {
 
   document.getElementById("dashStockValue").innerText = stockValue.toFixed(2);
 }
+
