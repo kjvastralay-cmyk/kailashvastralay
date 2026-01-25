@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Kailash Jewellers & Vastralay POS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- CSS -->
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/a5-bill.css">
+<link rel="stylesheet" href="css/responsive.css">
+
+<!-- Supabase -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<!-- CSV + Barcode -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+</head>
+<body>
+
+<!-- AUTH CHECK -->
+<script src="js/core/supabase.js"></script>
+<script src="js/core/auth.js"></script>
+<script>
+  window.addEventListener("DOMContentLoaded", checkAuth);
+</script>
+
+<!-- ================= HEADER ================= -->
+<header class="topbar">
+  <div class="top-left">
+    <img src="assets/images/logo.png" class="logo-small">
+    <h2>KAILASH VASTRALAY</h2>
+  </div>
+  <div class="top-right">
+    <span id="currentUser"></span>
+    <button onclick="logout()">Logout</button>
+  </div>
+</header>
+
+<div class="app-container">
+
+<!-- ================= SIDEBAR ================= -->
+<nav class="sidebar">
+
+  <input id="globalSearch" placeholder="Search anything..."
+    onkeyup="globalSearch()" style="margin:6px;inline-size:90%;padding:6px;border-radius:5px;border:none;">
+
+  <button onclick="showSection('dashboard')">Dashboard</button>
+  <button onclick="showSection('billing')">Billing</button>
+  <button onclick="showSection('productEntry')">Product Registration</button>
+  <button onclick="showSection('stockView'); loadStock()">Stock Register</button>
+  <button onclick="showSection('billList'); loadBills()">Bills</button>
+  <button onclick="showSection('returns')">Returns</button>
+  <button onclick="showSection('reports')">Reports</button>
+  <button onclick="showSection('import')">CSV Import</button>
+  <button onclick="showSection('admin')">Admin</button>
+
+</nav>
+
+<!-- ================= MAIN CONTENT ================= -->
+<main class="content">
+
+<!-- ===== DASHBOARD ===== -->
+<section id="dashboard" class="card">
+  <h3>Dashboard</h3>
+  <div class="dashboard-grid">
+    <div class="dash-box">Total Products: <span id="dashProducts">0</span></div>
+    <div class="dash-box">Total Stock: <span id="dashStock">0</span></div>
+    <div class="dash-box">Today Sales: ₹<span id="dashTodaySales">0</span></div>
+    <div class="dash-box">Stock Value: ₹<span id="dashStockValue">0</span></div>
+  </div>
+</section>
+
+<!-- ===== BILLING ===== -->
+<section id="billing" class="card" hidden>
+  <h3>Billing</h3>
+
+<div class="bill-form">
+  <div class="bill-row">
+    <label>Invoice No:</label>
+    <input id="billInvoiceNo" placeholder="Auto / Manual">
+  </div>
+
+  <div class="bill-row">
+    <label>Date:</label>
+    <input id="billDate" type="date">
+  </div>
+
+  <div class="bill-row">
+    <label>Customer Name:</label>
+    <input id="billCustomerName" placeholder="Customer Name">
+  </div>
+
+  <div class="bill-row">
+    <label>Phone:</label>
+    <input id="billCustomerPhone" placeholder="Mobile Number">
+  </div>
+</div>
+
+  <div class="scan-box">
+    <input id="barcodeInput" placeholder="Scan / Enter Barcode">
+    <button onclick="addItem()">+</button>
+  </div>
+
+  <table id="billTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Item</th>
+        <th>Size</th>
+        <th>Qty</th>
+        <th>Rate</th>
+        <th>Disc %</th>
+        <th>Amount</th>
+        <th>❌</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div class="total-box">
+    <span>Grand Total</span>
+    <strong id="grandTotal">₹0.00</strong>
+  </div>
+
+  <button onclick="saveBill()">Save + Print</button>
+<button onclick="printA5()">Print A5</button>
+<button onclick="resetBill(false)">Reset</button>
+
+</section>
+
+<!-- ===== PRODUCT REGISTRATION ===== -->
+<section id="productEntry" class="card" hidden>
+  <h3>Product Registration</h3>
+
+  <div class="form-grid">
+    
+    <input id="p_name" placeholder="Product Name">
+    <input id="p_size" placeholder="Size">
+    <input id="p_unit" placeholder="Unit" value="PCS">
+    <input id="p_cost" type="number" placeholder="Cost Price">
+    <input id="p_sell" type="number" placeholder="Selling Price">
+    <input id="p_qty" type="number" placeholder="Opening Stock">
+     <input id="p_supplier_name" placeholder="Supplier Name">
+  <input id="p_supplier_gst" placeholder="Supplier GST No">
+  <input id="p_supplier_invoice" placeholder="Supplier Invoice No">
+    <input id="p_barcode" placeholder="Barcode" readonly>
+  </div>
+
+  <button onclick="generateBarcode()">Generate Barcode</button>
+  <svg id="barcodePreview"></svg>
+
+  <div style="margin-block-start:10px;border-block-start:1px solid #ccc;padding-block-start:10px;">
+    <h4>Barcode Print (A4 = 65 Labels)</h4>
+
+    <label>Start Label No:</label>
+    <input id="bc_start_pos" type="number" value="1" min="1" max="65" style="inline-size:80px;">
+
+    <label>How Many Labels:</label>
+    <input id="bc_count" type="number" value="10" min="1" max="65" style="inline-size:80px;">
+  </div>
+
+  <button onclick="printBarcode()">Print Barcode</button>
+  <button onclick="saveProduct()">Save Product</button>
+</section>
+
+<!-- ===== STOCK REGISTER ===== -->
+<section id="stockView" class="card" hidden>
+  <h3>Stock Register</h3>
+  <input id="stockSearch" placeholder="Search product / barcode..." onkeyup="searchStock()">
+
+  <table>
+    <thead>
+  <tr>
+    <th>Barcode</th>
+    <th>Product</th>
+    <th>Size</th>
+    <th>Unit</th>
+    <th>Stock</th>
+    <th>Cost</th>
+    <th>Sell</th>
+    <th>Supplier</th>
+    <th>GST</th>
+    <th>Supplier Invoice</th>
+  </tr>
+</thead>
+<tbody id="stockBody"></tbody>
+  </table>
+</section>
+
+<!-- ===== BILLS LIST ===== -->
+<section id="billList" class="card" hidden>
+  <h3>Bill Management</h3>
+
+<div class="bill-filter-box">
+
+  <select id="billFilterType" onchange="toggleBillFilters(); loadBills();">
+    <option value="all">All</option>
+    <option value="today">Today</option>
+    <option value="date">By Date</option>
+    <option value="month">By Month</option>
+    <option value="year">By Year</option>
+  </select>
+
+  <input type="date" id="billFilterDate" hidden onchange="loadBills()">
+
+  <select id="billFilterMonth" hidden onchange="loadBills()">
+    <option value="">Month</option>
+    <option value="1">Jan</option>
+    <option value="2">Feb</option>
+    <option value="3">Mar</option>
+    <option value="4">Apr</option>
+    <option value="5">May</option>
+    <option value="6">Jun</option>
+    <option value="7">Jul</option>
+    <option value="8">Aug</option>
+    <option value="9">Sep</option>
+    <option value="10">Oct</option>
+    <option value="11">Nov</option>
+    <option value="12">Dec</option>
+  </select>
+
+  <input type="number" id="billFilterYear" value="2026" hidden onchange="loadBills()">
+
+  <input id="billSearch" placeholder="Search invoice / name / phone / date..." onkeyup="loadBills()">
+</div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Invoice</th>
+        <th>Date</th>
+        <th>Customer</th>
+        <th>Phone</th>
+        <th>Total</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="billListBody"></tbody>
+  </table>
+</section>
+
+<!-- ===== RETURNS ===== -->
+<section id="returns" class="card" hidden>
+  <h3>Return System</h3>
+
+  <div class="return-box">
+    <input id="returnInvoice" placeholder="Enter Invoice No">
+    <button onclick="loadBillForReturn()">Load Bill</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Item</th>
+        <th>Size</th>
+        <th>Qty Sold</th>
+        <th>Return Qty</th>
+      </tr>
+    </thead>
+    <tbody id="returnTableBody"></tbody>
+  </table>
+
+  <button onclick="processReturn()">Process Return</button>
+</section>
+
+<!-- ===== REPORTS ===== -->
+<section id="reports" class="card" hidden>
+  <h3>📊 Sales & Profit Reports</h3>
+
+  <div class="report-panel">
+    <select id="reportType" onchange="toggleReportInputs()">
+      <option value="daily">Daily</option>
+      <option value="monthly">Monthly</option>
+      <option value="yearly">Yearly</option>
+      <option value="range">Custom Range</option>
+    </select>
+
+    <input type="date" id="reportDate">
+
+    <select id="reportMonth" hidden>
+      <option value="1">Jan</option>
+      <option value="2">Feb</option>
+      <option value="3">Mar</option>
+      <option value="4">Apr</option>
+      <option value="5">May</option>
+      <option value="6">Jun</option>
+      <option value="7">Jul</option>
+      <option value="8">Aug</option>
+      <option value="9">Sep</option>
+      <option value="10">Oct</option>
+      <option value="11">Nov</option>
+      <option value="12">Dec</option>
+    </select>
+
+    <input type="number" id="reportYear" value="2026" hidden>
+
+    <input type="date" id="reportFrom" hidden>
+    <input type="date" id="reportTo" hidden>
+
+    <button onclick="generateReport()">Generate Report</button>
+  </div>
+
+  <div id="reportResult" class="report-box"></div>
+</section>
+
+<!-- ===== CSV IMPORT ===== -->
+<section id="import" class="card" hidden>
+  <h3>CSV Import (Marg / Excel)</h3>
+  <input type="file" id="csvFile" accept=".csv">
+  <button onclick="uploadCSV()">Upload CSV</button>
+  <div id="uploadStatus"></div>
+</section>
+
+<!-- ===== ADMIN ===== -->
+<section id="admin" class="card" hidden>
+  <h3>Admin Panel</h3>
+  <button onclick="deleteBillsByDate()">Delete Bills by Date</button>
+  <button onclick="deleteBillsByMonth()">Delete Bills by Month</button>
+  <button onclick="deleteBillsByYear()">Delete Bills by Year</button>
+  <button onclick="cleanupZeroStock()">Delete Zero Stock (3 Months)</button>
+</section>
+
+</main>
+</div>
+
+<!-- ================= A5 BILL PREVIEW ================= -->
+<section id="invoicePreview" class="invoice">
+
+  <div class="inv-header">
+    <div class="inv-logo">
+      <img src="assets/images/logo.png">
+    </div>
+    <div class="inv-shop">
+      <h2>KAILASH JEWELLERS & VASTRALAY</h2>
+      <p>Bajar Road, Sitapur, Surguja (C.G.)</p>
+      <p>📞 9039491093</p>
+    </div>
+  </div>
+
+  <div class="inv-title"><h3>INVOICE</h3></div>
+
+  <div class="inv-info">
+    <div class="left">
+      <p><b>Customer Name:</b> <span id="custName"></span></p>
+      <p><b>Phone:</b> <span id="custPhone"></span></p>
+    </div>
+    <div class="right">
+      <p><b>Invoice No:</b> <span id="invNo"></span></p>
+      <p><b>Date:</b> <span id="invDate"></span></p>
+    </div>
+  </div>
+
+  <table class="inv-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Item Name</th>
+        <th>Size</th>
+        <th>Qty</th>
+        <th>Rate</th>
+        <th>Disc %</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody id="invItems"></tbody>
+  </table>
+
+  <div class="inv-summary">
+    <div class="left">
+      <p>Total Qty: <span id="totalQty">0</span></p>
+      <p><b>Amount in Words:</b></p>
+      <p id="amountWords"></p>
+    </div>
+
+    <div class="right">
+      <p>Sub Total: ₹<span id="subTotal">0.00</span></p>
+      <p>Discount: ₹<span id="discTotal">0.00</span></p>
+      <h3>Grand Total: ₹<span id="invTotal">0.00</span></h3>
+    </div>
+  </div>
+
+  <div class="inv-sign">
+    <b>FOR KAILASH VASTRALAY</b>
+  </div>
+
+</section>
+
+<!-- ================= JS FILES ================= -->
+<script src="js/master/barcode.js"></script>
+
+<script src="js/core/ui.js"></script>
+<script src="js/core/search.js"></script>
+
+<script src="js/master/products.js"></script>
+<script src="js/master/stock.js"></script>
+
+<script src="js/sales/billing.js"></script>
+<script src="js/sales/bills.js"></script>
+<script src="js/returns/returns.js"></script>
+<script src="js/reports/reports.js"></script>
+<script src="js/admin/delete.js"></script>
+<script src="js/csvUpload.js"></script>
+
+
+<script>
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  if (user.username) {
+    document.getElementById("currentUser").innerText = "User: " + user.username;
+  }
+</script>
+<script src="js/dashboard.js"></script>
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    loadDashboard();
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,92 @@
+/* ===============================
+   BASE.CSS – GLOBAL RESET & THEME
+================================ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", Arial, sans-serif;
+}
+
+:root {
+  --primary: #1f4fd8;
+  --secondary: #c9a24d;
+  --dark: #1c1c1c;
+  --light: #f6f8fb;
+  --border: #e0e0e0;
+  --text: #333;
+  --success: #28a745;
+  --danger: #dc3545;
+}
+
+body {
+  background: var(--light);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* Headings */
+h1, h2, h3, h4 {
+  font-weight: 600;
+  color: var(--dark);
+}
+
+/* Links */
+a {
+  text-decoration: none;
+  color: var(--primary);
+}
+
+/* Inputs */
+input, select, textarea {
+  inline-size: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+}
+
+/* Buttons */
+button {
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  transition: 0.2s;
+}
+
+button.primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+button.secondary {
+  background: var(--secondary);
+  color: #fff;
+}
+
+button.danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  inline-size: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 6px;
+}

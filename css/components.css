@@ -1,0 +1,82 @@
+/* ===============================
+   COMPONENTS.CSS – UI ELEMENTS
+================================ */
+
+/* Card */
+.card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-block-end: 14px;
+}
+
+/* Form grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-block-end: 10px;
+}
+
+/* Tables */
+table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  margin-block-start: 10px;
+  font-size: 13px;
+}
+
+table th, table td {
+  border: 1px solid var(--border);
+  padding: 8px;
+  text-align: start;
+}
+
+table th {
+  background: #f0f3f7;
+  font-weight: 600;
+}
+
+/* Billing scan box */
+.scan-box {
+  display: flex;
+  gap: 8px;
+  margin-block-end: 10px;
+}
+
+.scan-box input {
+  flex: 1;
+}
+
+/* Total box */
+.total-box {
+  margin-block-start: 10px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  font-weight: bold;
+  background: #f7f7f7;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+/* Search inputs */
+#stockSearch,
+#billSearch,
+#ledgerSearch {
+  margin-block-end: 8px;
+  max-inline-size: 300px;
+}
+
+/* Report buttons */
+.report-buttons {
+  display: flex;
+  gap: 8px;
+  margin-block-end: 10px;
+}
+.sidebar button.active {
+  background: var(--secondary);
+  color: #000;
+  font-weight: bold;
+}

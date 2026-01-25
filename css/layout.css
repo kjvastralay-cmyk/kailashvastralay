@@ -1,0 +1,89 @@
+/* ===============================
+   LAYOUT.CSS – APP STRUCTURE
+================================ */
+
+/* Topbar */
+.topbar {
+  inline-size: 100%;
+  block-size: 60px;
+  background: #fff;
+  border-block-end: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  position: fixed;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  z-index: 1000;
+}
+
+.top-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-small {
+  block-size: 40px;
+}
+
+.top-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* App container */
+.app-container {
+  display: flex;
+  margin-block-start: 60px;
+}
+
+/* Sidebar */
+.sidebar {
+  inline-size: 230px;
+  background: #111;
+  min-block-size: calc(100vh - 60px);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar button {
+  inline-size: 100%;
+  text-align: start;
+  background: transparent;
+  color: #fff;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: none;
+  font-size: 14px;
+}
+
+.sidebar button:hover {
+  background: var(--primary);
+}
+
+/* Main content */
+.content {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+}
+
+/* Dashboard grid */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.dash-box {
+  background: #fff;
+  border: 1px solid var(--border);
+  padding: 14px;
+  border-radius: 10px;
+  font-weight: 600;
+}

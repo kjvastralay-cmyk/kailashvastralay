@@ -1,0 +1,104 @@
+/* ===============================
+   INVOICE-A5.CSS – PRINT BILL
+================================ */
+
+@page {
+  size: A5;
+  margin: 8mm;
+}
+
+.invoice {
+  inline-size: 100%;
+  font-size: 12px;
+  color: #000;
+}
+
+/* Header */
+.invoice .header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-block-end: 2px solid #000;
+  padding-block-end: 6px;
+  margin-block-end: 6px;
+}
+
+.invoice .header img {
+  block-size: 50px;
+}
+
+.invoice .shop-info h2 {
+  font-size: 16px;
+  margin-block-end: 2px;
+}
+
+.invoice .shop-info p {
+  font-size: 11px;
+}
+
+/* Bill info */
+.invoice .bill-info {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-block-end: 6px;
+}
+
+/* Items table */
+.invoice table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+}
+
+.invoice table th,
+.invoice table td {
+  border: 1px solid #000;
+  padding: 4px;
+}
+
+/* Summary */
+.invoice .summary {
+  margin-block-start: 6px;
+  font-size: 12px;
+}
+
+.invoice .summary div {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Footer */
+.invoice .footer {
+  text-align: center;
+  margin-block-start: 8px;
+  font-size: 11px;
+}
+
+/* Black & White print safe */
+@media print {
+  body {
+    background: #fff !important;
+  }
+  .sidebar,
+  .topbar,
+  button {
+    display: none !important;
+  }
+}
+@media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #invoicePreview, #invoicePreview * {
+    visibility: visible;
+  }
+
+  #invoicePreview {
+    position: absolute;
+    inset-inline-start: 0;
+    inset-block-start: 0;
+    inline-size: 100%;
+  }
+}

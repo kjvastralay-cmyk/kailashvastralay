@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Barcode Print</title>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+<style>
+@page {
+  size: A4;
+  margin: 0;
+}
+
+body {
+  margin: 0;
+  font-family: Arial;
+}
+
+.label-sheet {
+  inline-size: 210mm;
+  block-size: 297mm;
+  box-sizing: border-box;
+
+  /* ✅ top & bottom margin = 1 cm */
+  padding-block-start: 10mm;
+  padding-block-end: 10mm;
+
+  /* ✅ left & right margin = 0.4 cm */
+  padding-inline-start: 1mm;
+  padding-inline-end: 1mm;
+
+  display: grid;
+
+  /* 5 columns */
+  grid-template-columns: repeat(5, 1fr);
+
+  /* ✅ each label height = 2 cm */
+  grid-template-rows: repeat(13, 20mm);
+
+  /* ✅ only column gap */
+  column-gap: 3mm;
+  row-gap: 1mm;
+}
+
+/* label */
+.label {
+  inline-size: 100%;
+  block-size: 20mm;
+  border-radius: 4mm;     /* curve */
+  padding: 1.2mm;         /* small inner margin */
+  box-sizing: border-box;
+  text-align: center;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  line-height: 1.1;
+}
+
+/* shop name - very small */
+.label .shop {
+  font-size: 10px;
+  font-weight: 600;
+}
+
+/* barcode number */
+.label .code-text {
+  font-size: 10px;   /* visible but not big */
+}
+
+
+svg {
+  inline-size: 85%;
+  block-size: 12mm;
+}
+
+</style>
+
+</head>
+<body>
+
+<div class="label-sheet" id="labelSheet"></div>
+
+<script>
+const settings = JSON.parse(localStorage.getItem("barcodeSettings"));
+
+const code = settings.code;
+const startPos = settings.startPos;
+const count = settings.count;
+
+const totalLabels = 65; // fixed A4 labels
+const sheet = document.getElementById("labelSheet");
+
+let printed = 0;
+
+for (let i = 1; i <= totalLabels; i++) {
+  const div = document.createElement("div");
+  div.className = "label";
+
+  if (i >= startPos && printed < count) {
+    div.innerHTML = `
+  <div class="shop" style="margin-block-end: 0.2mm;">KAILASH VASTRALAY</div>
+  <svg id="bc${i}"></svg>
+  <div class="code-text" style="margin-top: 0.2mm;">${code}</div>
+`;
+
+    sheet.appendChild(div);
+
+   JsBarcode(`#bc${i}`, code, {
+  format: "CODE128",
+  fontSize: 6,      // small number under barcode
+  height: 20,       // fits in 2cm label
+  width: 1.2,       // thin lines (old style)
+  displayValue: false,  // we show number manually
+  margin: 2
+});
+
+    printed++;
+  } else {
+    div.innerHTML = "";
+    sheet.appendChild(div);
+  }
+}
+window.print();
+</script>
+</body>
+</html>
