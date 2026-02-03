@@ -1,11 +1,14 @@
 /************************************************
- * RETURNS.JS – PROFESSIONAL BILL RETURN SYSTEM
+ * RETURNS.JS – DUAL RETURN SYSTEM
+ * 1️⃣ With Invoice
+ * 2️⃣ Without Invoice (Direct Barcode)
  ************************************************/
 
 let returnBillId = null;
 let returnItems = [];
 
-/* ================= LOAD BILL ================= */
+/* ================== RETURN WITH INVOICE ================== */
+
 async function loadBillForReturn() {
   const sb = window.supabaseClient;
   const invoiceNo = document.getElementById("returnInvoice").value.trim();
@@ -31,11 +34,9 @@ async function loadBillForReturn() {
     return alert("❌ No items in bill");
 
   returnItems = items;
-
   renderReturnTable();
 }
 
-/* ================= RENDER RETURN TABLE ================= */
 function renderReturnTable() {
   const tbody = document.getElementById("returnTableBody");
   tbody.innerHTML = "";
@@ -47,16 +48,16 @@ function renderReturnTable() {
         <td>${item.products.name}</td>
         <td>${item.products.size || ""}</td>
         <td>${item.qty}</td>
-        <td><input type="number" min="0" max="${item.qty}" value="0" id="retQty_${i}"></td>
+        <td>
+          <input type="number" min="0" max="${item.qty}" value="0" id="retQty_${i}">
+        </td>
       </tr>
     `;
   });
 }
 
-/* ================= PROCESS RETURN ================= */
 async function processReturn() {
   const sb = window.supabaseClient;
-
   if (!returnBillId) return alert("Load bill first");
 
   let anyReturn = false;
@@ -70,14 +71,12 @@ async function processReturn() {
 
     anyReturn = true;
 
-    // ✅ Increase stock
-    const newStock = item.products.stock_qty + qty;
-
+    // Increase stock
     await sb.from("products")
-      .update({ stock_qty: newStock })
+      .update({ stock_qty: item.products.stock_qty + qty })
       .eq("id", item.product_id);
 
-    // ✅ Update bill_items
+    // Update bill items
     const remaining = item.qty - qty;
 
     if (remaining > 0) {
@@ -90,7 +89,7 @@ async function processReturn() {
         .eq("id", item.id);
     }
 
-    // ✅ Ledger
+    // Stock ledger
     await sb.from("stock_ledger").insert({
       product_id: item.product_id,
       type: "RETURN",
@@ -104,13 +103,59 @@ async function processReturn() {
 
   await recalcBillTotal(returnBillId);
 
-  alert("✅ Return processed");
+  alert("✅ Return processed (with invoice)");
 
   loadStock();
   loadBillForReturn();
 }
 
-/* ================= RECALCULATE BILL ================= */
+/* ================== DIRECT RETURN (NO BILL) ================== */
+
+async function processDirectReturn() {
+  const sb = window.supabaseClient;
+  const barcode = document.getElementById("directReturnBarcode").value.trim();
+  const qty = Number(document.getElementById("directReturnQty").value);
+
+  if (!barcode || qty <= 0) {
+    alert("Enter barcode and quantity");
+    return;
+  }
+
+  const { data: product } = await sb
+    .from("products")
+    .select("id, stock_qty")
+    .eq("barcode", barcode)
+    .maybeSingle();
+
+  if (!product) {
+    alert("❌ Product not found");
+    return;
+  }
+
+  // Increase stock
+  await sb.from("products")
+    .update({ stock_qty: product.stock_qty + qty })
+    .eq("id", product.id);
+
+  // Ledger entry
+  await sb.from("stock_ledger").insert({
+    product_id: product.id,
+    type: "RETURN",
+    qty_in: qty,
+    reference_table: "direct_return",
+    reference_id: null
+  });
+
+  alert("✅ Direct return processed");
+
+  document.getElementById("directReturnBarcode").value = "";
+  document.getElementById("directReturnQty").value = "";
+
+  loadStock();
+}
+
+/* ================== RECALCULATE BILL ================== */
+
 async function recalcBillTotal(billId) {
   const sb = window.supabaseClient;
 

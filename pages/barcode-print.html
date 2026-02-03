@@ -2,8 +2,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Barcode Print</title>
+<title>Barcode Print – Oddy ST-65</title>
+
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+
 <style>
 @page {
   size: A4;
@@ -12,41 +14,32 @@
 
 body {
   margin: 0;
-  font-family: Arial;
+  font-family: Arial, sans-serif;
 }
 
 .label-sheet {
-  inline-size: 210mm;
-  block-size: 297mm;
+  width: 210mm;
+  height: 297mm;
   box-sizing: border-box;
 
-  /* ✅ top & bottom margin = 1 cm */
-  padding-block-start: 10mm;
-  padding-block-end: 10mm;
-
-  /* ✅ left & right margin = 0.4 cm */
-  padding-inline-start: 1mm;
-  padding-inline-end: 1mm;
+  /* Oddy ST-65 margins */
+  padding-top: 10mm;
+  padding-bottom: 10mm;
+  padding-left: 2mm;
+  padding-right: 2mm;
 
   display: grid;
+  grid-template-columns: repeat(5, 38.1mm);
+  grid-template-rows: repeat(13, 21.2mm);
 
-  /* 5 columns */
-  grid-template-columns: repeat(5, 1fr);
-
-  /* ✅ each label height = 2 cm */
-  grid-template-rows: repeat(13, 20mm);
-
-  /* ✅ only column gap */
-  column-gap: 3mm;
-  row-gap: 1mm;
+  column-gap: 2mm;
+  row-gap: 0mm;
 }
 
-/* label */
+/* Single label */
 .label {
-  inline-size: 100%;
-  block-size: 20mm;
-  border-radius: 4mm;     /* curve */
-  padding: 1.2mm;         /* small inner margin */
+  width: 38.1mm;
+  height: 21.2mm;
   box-sizing: border-box;
   text-align: center;
   overflow: hidden;
@@ -55,41 +48,87 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  line-height: 1.1;
 }
 
-/* shop name - very small */
-.label .shop {
-  font-size: 10px;
+/* Shop name */
+.shop {
+  font-size: 7.5px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+/* Product name */
+.product {
+  font-size: 7px;
+  font-weight: normal;
+  line-height: 1;
+  max-width: 36mm;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Price */
+.price {
+  font-size: 8px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+/* Barcode SVG */
+svg {
+  width: 34mm;
+  height: 9mm;
+}
+
+/* Barcode number */
+.code-text {
+  font-size: 7px;
+  line-height: 1;
+}
+.product {
+  font-size: 7px;
   font-weight: 600;
 }
 
-/* barcode number */
-.label .code-text {
-  font-size: 10px;   /* visible but not big */
+.price {
+  font-size: 8px;
+  font-weight: bold;
+  margin-bottom: 1mm;
 }
 
-
-svg {
-  inline-size: 85%;
-  block-size: 12mm;
+.code-text {
+  font-size: 7px;
 }
 
 </style>
-
 </head>
+
 <body>
 
 <div class="label-sheet" id="labelSheet"></div>
 
 <script>
+/*
+Expected localStorage data:
+barcodeSettings = {
+  code: "101835",
+  product: "BUTTI SAREE",
+  price: "970",
+  startPos: 1,
+  count: 65
+}
+*/
+
 const settings = JSON.parse(localStorage.getItem("barcodeSettings"));
 
 const code = settings.code;
-const startPos = settings.startPos;
-const count = settings.count;
+const product = settings.product || "";
+const price = settings.price || "";
+const startPos = settings.startPos || 1;
+const count = settings.count || 1;
 
-const totalLabels = 65; // fixed A4 labels
+const totalLabels = 65;
 const sheet = document.getElementById("labelSheet");
 
 let printed = 0;
@@ -100,29 +139,33 @@ for (let i = 1; i <= totalLabels; i++) {
 
   if (i >= startPos && printed < count) {
     div.innerHTML = `
-  <div class="shop" style="margin-block-end: 0.2mm;">KAILASH VASTRALAY</div>
-  <svg id="bc${i}"></svg>
-  <div class="code-text" style="margin-top: 0.2mm;">${code}</div>
-`;
+      <div class="shop">KAILASH VASTRALAY</div>
+      <div class="product">${product}</div>
+      <div class="price">₹${price}</div>
+      <svg id="bc${i}"></svg>
+      <div class="code-text">${code}</div>
+      
+    `;
 
     sheet.appendChild(div);
 
-   JsBarcode(`#bc${i}`, code, {
+    JsBarcode(`#bc${i}`, code, {
   format: "CODE128",
-  fontSize: 6,      // small number under barcode
-  height: 20,       // fits in 2cm label
-  width: 1.2,       // thin lines (old style)
-  displayValue: false,  // we show number manually
-  margin: 2
+  width: 0.9,     // 🔥 very thin lines
+  height: 9,      // fits 21mm label
+  margin: 0,
+  displayValue: false
 });
+
 
     printed++;
   } else {
-    div.innerHTML = "";
     sheet.appendChild(div);
   }
 }
+
 window.print();
 </script>
+
 </body>
 </html>

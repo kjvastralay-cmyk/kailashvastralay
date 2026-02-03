@@ -189,6 +189,13 @@
 </thead>
 <tbody id="stockBody"></tbody>
   </table>
+
+  <div class="pagination">
+  <button onclick="prevStock()">◀ Prev</button>
+  <span id="stockPageInfo"></span>
+  <button onclick="nextStock()">Next ▶</button>
+</div>
+
 </section>
 
 <!-- ===== BILLS LIST ===== -->
@@ -247,6 +254,14 @@
 <!-- ===== RETURNS ===== -->
 <section id="returns" class="card" hidden>
   <h3>Return System</h3>
+<h4>Return Without Bill</h4>
+<input id="directReturnBarcode" placeholder="Scan / Enter Barcode">
+<input id="directReturnQty" type="number" placeholder="Qty">
+<button onclick="processDirectReturn()">Direct Return</button>
+
+<hr>
+
+<h4>Return With Bill</h4>
 
   <div class="return-box">
     <input id="returnInvoice" placeholder="Enter Invoice No">

@@ -47,4 +47,3 @@ async function loadDashboard() {
 
   document.getElementById("dashStockValue").innerText = stockValue.toFixed(2);
 }
-
