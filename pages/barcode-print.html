@@ -1,7 +1,7 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 <title>Barcode Print – Oddy ST-65</title>
 
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -18,73 +18,56 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* ===== A4 SHEET ===== */
 .label-sheet {
+  position: relative;
   width: 210mm;
   height: 297mm;
-
-  /* EXACT Oddy margins */
-  padding-top: 10mm;
-  padding-bottom: 10mm;
-  padding-left: 9.75mm;
-  padding-right: 9.75mm;
-
-  box-sizing: border-box;
-
-  display: grid;
-  grid-template-columns: repeat(5, 38.1mm);
-  grid-template-rows: repeat(13, 21.2mm);
 }
 
-/* ===== SINGLE LABEL ===== */
+/* EXACT LABEL */
 .label {
+  position: absolute;
   width: 38.1mm;
   height: 21.2mm;
-
-  box-sizing: border-box;
-  overflow: hidden;
 
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
 
-  padding-top: 1mm;
+  padding-top: 1.5mm;   /* 🔥 fixes vertical shift */
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-/* ===== TEXT ===== */
+/* TEXT */
 .shop {
-  font-size: 7.2px;
+  font-size: 7.5px;
   font-weight: 600;
   line-height: 1;
 }
 
 .product {
   font-size: 7px;
+  font-weight: 600;
   line-height: 1;
-  white-space: nowrap;
-  max-width: 36mm;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .price {
   font-size: 8px;
   font-weight: bold;
   line-height: 1;
-  margin-bottom: 0.5mm;
+  margin-bottom: 0.8mm;
+}
+
+svg {
+  width: 34mm;
+  height: 9mm;
 }
 
 .code-text {
   font-size: 7px;
   line-height: 1;
-  margin-top: 0.5mm;
-}
-
-/* ===== BARCODE ===== */
-svg {
-  width: 34mm !important;
-  height: 8.5mm !important;
-  display: block;
 }
 </style>
 </head>
@@ -96,23 +79,46 @@ svg {
 <script>
 const settings = JSON.parse(localStorage.getItem("barcodeSettings"));
 
-const code = settings.code;
-const product = settings.product || "";
-const price = settings.price || "";
-const startPos = settings.startPos || 1;
-const count = settings.count || 65;
+if (!settings) {
+  alert("No barcode data found");
+  window.close();
+}
 
-const totalLabels = 65;
+const {
+  code,
+  product,
+  price,
+  startPos = 1,
+  count = 65
+} = settings;
+
+/* ===== EXACT FROM YOUR PDF ===== */
+const TOTAL_LABELS = 65;
+const COLS = 5;
+
+const LABEL_W = 38.1;
+const LABEL_H = 21.2;
+
+/* 🔒 LOCKED MARGINS (from PDF visual match) */
+const LEFT_MARGIN = 2.5;   // mm
+const TOP_MARGIN  = 9.5;   // mm
+
 const sheet = document.getElementById("labelSheet");
 
 let printed = 0;
 
-for (let i = 1; i <= totalLabels; i++) {
-  const div = document.createElement("div");
-  div.className = "label";
+for (let i = 0; i < TOTAL_LABELS; i++) {
+  const label = document.createElement("div");
+  label.className = "label";
 
-  if (i >= startPos && printed < count) {
-    div.innerHTML = `
+  const row = Math.floor(i / COLS);
+  const col = i % COLS;
+
+  label.style.left = `${LEFT_MARGIN + col * LABEL_W}mm`;
+  label.style.top  = `${TOP_MARGIN + row * LABEL_H}mm`;
+
+  if (i + 1 >= startPos && printed < count) {
+    label.innerHTML = `
       <div class="shop">KAILASH VASTRALAY</div>
       <div class="product">${product}</div>
       <div class="price">₹${price}</div>
@@ -120,22 +126,21 @@ for (let i = 1; i <= totalLabels; i++) {
       <div class="code-text">${code}</div>
     `;
 
-    sheet.appendChild(div);
+    sheet.appendChild(label);
 
     JsBarcode(`#bc${i}`, code, {
       format: "CODE128",
-      width: 0.8,
-      height: 8,
+      width: 0.9,
+      height: 9,
       margin: 0,
       displayValue: false
     });
 
     printed++;
   } else {
-    sheet.appendChild(div);
+    sheet.appendChild(label);
   }
 }
-
 window.print();
 </script>
 
